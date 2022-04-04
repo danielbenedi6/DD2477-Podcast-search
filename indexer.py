@@ -16,7 +16,6 @@ es = Elasticsearch("https://localhost:9200",
                     ssl_assert_fingerprint=FINGERPRINT
                     )
 
-"""
 print("Parsing file...")
 data = list(chain.from_iterable([[{"index": {"_index":"spotify-podcasts"}}, row] for row in csv.DictReader(open(FILE, newline=''),delimiter='\t')]))
 
@@ -26,7 +25,6 @@ try:
 except:
     print(data)
 
-"""
 es.indices.refresh(index="spotify-podcasts")
 
 listOfFiles = list()
