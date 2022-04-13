@@ -27,7 +27,7 @@ public class SearcherView extends Div  {
     Grid<Podcast> grid = new Grid<>();
     private HorizontalLayout pageButtonsLayout;
     public static final int PAGE_SIZE = 10;
-    private int currPage = 1;
+    private int currPage = 0;
     private int maxPage;
     Button arrowLeftButton, arrowRightButton;
     Div pageNumberDiv;
@@ -129,7 +129,7 @@ public class SearcherView extends Div  {
         podcasts = podcastList;
         int n = podcasts.size();
         int topPAGESIZEidx = Math.min(n, PAGE_SIZE);
-        currPage = 1;
+        currPage = 0;
         maxPage = (int) Math.ceil((double) n/PAGE_SIZE);
 
         List<Podcast> topPAGESIZE = podcasts.subList(0, topPAGESIZEidx);
@@ -143,25 +143,25 @@ public class SearcherView extends Div  {
     }
 
     private void updateButtonsAndPageDiv(){
-        boolean enableLeft = currPage > 1;
+        boolean enableLeft = currPage > 0;
         boolean enableRight = currPage < maxPage;
         arrowLeftButton.setEnabled(enableLeft);
         arrowRightButton.setEnabled(enableRight);
-        pageNumberDiv.setText("Page: "+currPage+"/"+maxPage);
+        pageNumberDiv.setText("Page: "+(currPage+1)+"/"+maxPage);
     }
 
     public void nextPage(){
+        currPage++;
         int start_idx = currPage*PAGE_SIZE;
         int end_idx = Math.min(podcasts.size(), (start_idx + PAGE_SIZE));
         grid.setItems(podcasts.subList(start_idx, end_idx));
-        currPage++;
         updateButtonsAndPageDiv();
     }
 
     public void previousPage(){
-        int start_idx = (currPage-1)*PAGE_SIZE;
-        grid.setItems(podcasts.subList(start_idx, start_idx+PAGE_SIZE));
         currPage--;
+        int start_idx = currPage*PAGE_SIZE;
+        grid.setItems(podcasts.subList(start_idx, start_idx+PAGE_SIZE));
         updateButtonsAndPageDiv();
     }
 
