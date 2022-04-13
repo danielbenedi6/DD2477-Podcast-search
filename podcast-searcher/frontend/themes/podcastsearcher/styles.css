@@ -1,0 +1,18 @@
+@import url('./main-layout.css');
+@import url('./views/searcher-view.css');
+@import url('line-awesome/dist/line-awesome/css/line-awesome.min.css');    html {
+      --lumo-border-radius: calc(var(--lumo-size-m) / 2);
+      --lumo-size-xl: 4rem;
+      --lumo-size-l: 3rem;
+      --lumo-size-m: 2.5rem;
+      --lumo-size-s: 2rem;
+      --lumo-size-xs: 1.75rem;
+
+    }
+
+    [theme~="dark"] {
+      --lumo-success-color-50pct: hsla(145, 91%, 49%, 0.5);
+      --lumo-success-color-10pct: hsla(145, 91%, 49%, 0.1);
+      --lumo-success-color: hsl(145, 91%, 49%);
+
+    }
