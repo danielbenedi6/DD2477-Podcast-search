@@ -3,30 +3,58 @@ import json
 from elasticsearch import Elasticsearch
 from itertools import chain
 import os
+from getpass import getpass
 
-PATH='podcasts-no-audio-13GB/spotify-podcasts-2020/'
+PATH='spotify-podcasts-2020/'
 FILE=PATH+'metadata-summarization-testset.tsv'
 TRANSCRIPTS=PATH+'podcasts-transcripts-summarization-testset'
 
 AUTH=("elastic",'')
 FINGERPRINT=''
+CA_CERT=''
 
-es = Elasticsearch("https://localhost:9200", 
-                    basic_auth=AUTH,
-                    ssl_assert_fingerprint=FINGERPRINT
-                    )
 
-print("Parsing file...")
+if AUTH[1] == "":
+    print("Please set your elasticsearch credentials in the script or write it now.")
+    password = getpass()
+    AUTH = ("elastic", password)
+    print("This won't change the script. To automate it, you can set it in the script.")
+
+if CA_CERT == '' or FINGERPRINT == '':
+    print("The SSL fingerprint or the CA certificate is missing.")
+    print("Write 1 for writing the fingerprint or 2 for writing the path to the CA certificate.")
+    choice = input()
+    if choice == '1':
+        print("Please enter the SSL fingerprint of the CA certificate:")
+        FINGERPRINT = input()
+    elif choice == '2':
+        print("Please enter the path to the CA certificate:")
+        CA_CERT = input()
+    else:
+        print("Wrong input. Exiting.")
+        exit()
+    print("This won't change the script. To automate it, you can set it in the script.")
+
+if CA_CERT != '':
+    es = Elasticsearch("https://localhost:9200",
+                        basic_auth=AUTH,
+                        ca_certs=CA_CERT
+                        )
+else:
+    es = Elasticsearch("https://localhost:9200",
+                        basic_auth=AUTH,
+                        ssl_assert_fingerprint=FINGERPRINT
+                        )
+
+
+print("Parsing metadata file...")
 data = list(chain.from_iterable([[{"index": {"_index":"spotify-podcasts"}}, row] for row in csv.DictReader(open(FILE, newline=''),delimiter='\t')]))
 
-print("Uploading...")
-try:
-    res = es.bulk(operations=data,index='spotify-podcasts')
-except:
-    print(data)
-
+print("Uploading metadata...")
+res = es.bulk(operations=data,index='spotify-podcasts')
 es.indices.refresh(index="spotify-podcasts")
 
+print("Parsing and uploading transcripts...")
 listOfFiles = list()
 for (dirpath, dirnames, filenames) in os.walk(TRANSCRIPTS):
     listOfFiles += [os.path.join(dirpath, file) for file in filenames]
