@@ -9,8 +9,8 @@ PATH='spotify-podcasts-2020/'
 FILE=PATH+'metadata-summarization-testset.tsv'
 TRANSCRIPTS=PATH+'podcasts-transcripts-summarization-testset'
 
-AUTH=("elastic",'')
-FINGERPRINT=''
+AUTH=("elastic",'e256a8b0c6688382')
+FINGERPRINT='63fc9699288e16b67200a15ed474b8794b5ddab8'
 CA_CERT=''
 
 
@@ -20,7 +20,7 @@ if AUTH[1] == "":
     AUTH = ("elastic", password)
     print("This won't change the script. To automate it, you can set it in the script.")
 
-if CA_CERT == '' or FINGERPRINT == '':
+if CA_CERT == '' and FINGERPRINT == '':
     print("The SSL fingerprint or the CA certificate is missing.")
     print("Write 1 for writing the fingerprint or 2 for writing the path to the CA certificate.")
     choice = input()

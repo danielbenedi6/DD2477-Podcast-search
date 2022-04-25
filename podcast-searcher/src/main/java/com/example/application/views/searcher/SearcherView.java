@@ -31,7 +31,7 @@ public class SearcherView extends Div  {
     private int maxPage;
     Button arrowLeftButton, arrowRightButton;
     Div pageNumberDiv;
-    List<Podcast> podcasts;
+    public List<Podcast> podcasts;
 
     public SearcherView() {
         podcasts = new ArrayList<>();
@@ -68,9 +68,9 @@ public class SearcherView extends Div  {
 
         TextArea podcastContent = new TextArea();
         podcastContent.setWidthFull();
-        podcastContent.setLabel(podcast.getTitle());
+        podcastContent.setLabel(podcast.getEpisode_name());
         podcastContent.setValueChangeMode(ValueChangeMode.EAGER);
-        podcastContent.setValue(podcast.getContent());
+        podcastContent.setValue(podcast.getTranscript());
         podcastContent.setEnabled(false);
         podcastContent.getStyle().set("font-size", "14px");
         podcastContent.getStyle().set("font-weight", "bold");
@@ -92,8 +92,8 @@ public class SearcherView extends Div  {
 
         return text_playButton_layout;
     }
-    private static Podcast createPodcast(String title, String content) {
-        return new Podcast(title, content);
+    private static Podcast createPodcast(String episode_name, String show_name, String content, String episode_uri) {
+        return new Podcast(episode_name, show_name, content, episode_uri);
     }
 
     public ArrayList<Podcast> searchPodcasts(String query, int seconds){
@@ -119,7 +119,7 @@ public class SearcherView extends Div  {
             else {
                 currentContent = (partialLorem);
             }
-            podcastList.add(new Podcast((cont)+" result title", currentContent));
+            podcastList.add(new Podcast((cont)+" result title", (cont)+" show name",currentContent, "https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
             cont++;
         }
         splitAndShowResultsInPages(podcastList);

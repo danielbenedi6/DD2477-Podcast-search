@@ -1,6 +1,9 @@
 package com.example.application.views;
 
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.transport.ElasticsearchTransport;
+import com.example.application.ElasticService;
 import com.example.application.views.searcher.SearcherView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
@@ -15,6 +18,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.RouterLink;
+import org.elasticsearch.client.RestClient;
 
 /**
  * The main view is a top-level placeholder for other views.
@@ -22,6 +26,8 @@ import com.vaadin.flow.router.RouterLink;
 public class MainLayout extends AppLayout {
 
     private SearcherView searcherView;
+    private ElasticService service;
+
     /**
      * A simple navigation item component, based on ListItem element.
      */
@@ -65,7 +71,8 @@ public class MainLayout extends AppLayout {
 
     }
 
-    public MainLayout() {
+    public MainLayout(ElasticService service) {
+        this.service = service;
         addToNavbar(createHeaderContent());
         setContent(createResultsView());
     }
@@ -135,8 +142,7 @@ public class MainLayout extends AppLayout {
     }
 
     private void searchQuery(String query, int seconds){
-        System.out.println("Not implemented yet");
-        searcherView.insertPodcastNtimes(100);
+        searcherView.podcasts = service.search(query, seconds);
         setContent(searcherView);
     }
 
