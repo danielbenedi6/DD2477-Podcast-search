@@ -45,7 +45,7 @@ public class ElasticService {
     private static String ELASTIC_URL = "localhost";
     private static int ELASTIC_PORT = 9200;
     private static String ELASTIC_USERNAME = "elastic";
-    private static String ELASTIC_PASSWORD = "e256a8b0c6688382";
+    private static String ELASTIC_PASSWORD = "b4db8869df6c2a2e";
     private static Path caCertificatePath = Paths.get("../es01.crt");
 
     public ElasticService() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
@@ -87,6 +87,7 @@ public class ElasticService {
                 results.add(hit.source());
                 //double tf_idf = hit.score();
             }
+            System.out.println(results.size() + " results found");
             return results;
         } catch(Exception e) {
             e.printStackTrace();

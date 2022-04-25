@@ -125,7 +125,7 @@ public class SearcherView extends Div  {
         splitAndShowResultsInPages(podcastList);
     }
 
-    private void splitAndShowResultsInPages(List<Podcast> podcastList){
+    public void splitAndShowResultsInPages(List<Podcast> podcastList){
         podcasts = podcastList;
         int n = podcasts.size();
         int topPAGESIZEidx = Math.min(n, PAGE_SIZE);
@@ -144,7 +144,7 @@ public class SearcherView extends Div  {
 
     private void updateButtonsAndPageDiv(){
         boolean enableLeft = currPage > 0;
-        boolean enableRight = currPage < maxPage;
+        boolean enableRight = currPage < (maxPage-1);
         arrowLeftButton.setEnabled(enableLeft);
         arrowRightButton.setEnabled(enableRight);
         pageNumberDiv.setText("Page: "+(currPage+1)+"/"+maxPage);

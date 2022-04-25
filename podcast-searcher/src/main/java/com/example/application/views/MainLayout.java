@@ -142,7 +142,7 @@ public class MainLayout extends AppLayout {
     }
 
     private void searchQuery(String query, int seconds){
-        searcherView.podcasts = service.search(query, seconds);
+        searcherView.splitAndShowResultsInPages(service.search(query, seconds));
         setContent(searcherView);
     }
 
