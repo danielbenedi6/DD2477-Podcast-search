@@ -35,6 +35,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -45,8 +46,8 @@ public class ElasticService {
     private static String ELASTIC_URL = "localhost";
     private static int ELASTIC_PORT = 9200;
     private static String ELASTIC_USERNAME = "elastic";
-    private static String ELASTIC_PASSWORD = "b4db8869df6c2a2e";
-    private static Path caCertificatePath = Paths.get("../es01.crt");
+    private static String ELASTIC_PASSWORD = "2HDh8FRFBlcQ6oe4IY*G";
+    private static Path caCertificatePath = Paths.get("C:\\Users\\pppp\\Desktop\\DD2477-Podcast-search\\DD2477-Podcast-search\\podcast-searcher\\http_ca.crt");
 
     public ElasticService() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
         CertificateFactory factory = CertificateFactory.getInstance("X.509");
@@ -79,11 +80,53 @@ public class ElasticService {
             Query show_description = new Query.Builder().terms(t -> t.field("show_description").terms(ft->ft.value(fields))).build();
             Query transcript = new Query.Builder().terms(t -> t.field("transcript").terms(ft->ft.value(fields))).build();
 
-            SearchResponse<Podcast> search = client.search(s -> s.index("spotify-podcasts")
-                    .query(q -> q.bool(b -> b.should(episode_description, show_description, transcript))), Podcast.class);
+            SearchResponse<Podcast> search = client.search(s -> s
+                    .index("spotify-podcasts")
+                    .query(q -> q
+                            .bool(b -> b
+                                    .should(episode_description, show_description, transcript))),
+                    Podcast.class);
 
             List<Podcast> results = new ArrayList<>();
             for(Hit<Podcast> hit : search.hits().hits()){
+                System.out.println("episode name " + hit.source().getEpisode_name());
+                System.out.println("show name " + hit.source().getShow_name());
+                System.out.println("episode uri " + hit.source().getEpisode_uri());
+                System.out.println("pubDate " + hit.source().getPubDate());
+                System.out.println("enclosure" + hit.source().getEnclosure());
+                System.out.println();
+                results.add(hit.source());
+                //double tf_idf = hit.score();
+            }
+            System.out.println(results.size() + " results found");
+            return results;
+        } catch(Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public List<Podcast> searchByEpisodeName(String query, float seconds){
+        try {
+            List<FieldValue> fields = Stream.of(query.split(" ")).map(FieldValue::of).collect(java.util.stream.Collectors.toList());
+
+            Query episode_name = new Query.Builder().terms(t -> t.field("episode_name").terms(ft->ft.value(fields))).build();
+
+            SearchResponse<Podcast> search = client.search(s -> s
+                            .index("spotify-podcasts")
+                            .query(q -> q
+                                    .bool(b -> b
+                                            .should(episode_name))),
+                    Podcast.class);
+
+            List<Podcast> results = new ArrayList<>();
+            for(Hit<Podcast> hit : search.hits().hits()){
+                System.out.println("episode name " + hit.source().getEpisode_name());
+                System.out.println("show name " + hit.source().getShow_name());
+                System.out.println("episode uri " + hit.source().getEpisode_uri());
+                System.out.println("pubDate " + hit.source().getPubDate());
+                System.out.println("enclosure " + hit.source().getEnclosure());
+                System.out.println();
                 results.add(hit.source());
                 //double tf_idf = hit.score();
             }
