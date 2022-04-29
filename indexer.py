@@ -4,15 +4,16 @@ from elasticsearch import Elasticsearch
 from itertools import chain
 import os
 from getpass import getpass
+import xml.etree.ElementTree as ET
 
 PATH='spotify-podcasts-2020/'
 FILE=PATH+'metadata-summarization-testset.tsv'
 TRANSCRIPTS=PATH+'podcasts-transcripts-summarization-testset'
+RSS=PATH+'show-rss-summarization-testset'
 
-AUTH=("elastic",'e256a8b0c6688382')
-FINGERPRINT='63fc9699288e16b67200a15ed474b8794b5ddab8'
+AUTH=("elastic",'')
+FINGERPRINT=''
 CA_CERT=''
-
 
 if AUTH[1] == "":
     print("Please set your elasticsearch credentials in the script or write it now.")
@@ -90,3 +91,59 @@ for file in listOfFiles:
         )
 
 es.indices.refresh(index="spotify-podcasts")
+
+print("Parsing and uploading rss...")
+listOfFiles = list()
+for (dirpath, dirnames, filenames) in os.walk(RSS):
+    listOfFiles += [os.path.join(dirpath, file) for file in filenames]
+ns = {"itunes":"http://www.itunes.com/dtds/podcast-1.0.dtd"}
+for file in listOfFiles:
+    try:
+        data = ET.parse(file)
+    except:
+        print("Error parsing file: " + file)
+        continue
+    root = data.getroot()
+    for episode in data.find('channel').findall('item'):
+        title = episode.find('title').text
+
+        res = es.search(
+            index='spotify-podcasts',
+            query = {
+                "constant_score": {
+                    "filter":{
+                        "term":{
+                            "episode_name" : title
+                        }
+                    }
+                }
+            }
+        )
+        if res["hits"]["total"]["value"] == 0:
+            continue
+        _id = res["hits"]["hits"][0]["_id"]
+
+        pubDate = episode.find('pubDate').text
+        try:
+            image = episode.find('itunes:image', ns).attrib['href']
+        except:
+            try:
+                image = episode.find('image').attrib['href']
+            except:
+                print("No image for " + file)
+                image = ""
+        try:
+            enclosure = episode.find('enclosure').attrib['url']
+        except:
+            print("No enclosure for " + file)
+            enclosure = ""
+
+        res = es.update(
+            index = 'spotify-podcasts',
+            id = _id,
+            doc = {
+                "pubDate" : pubDate,
+                "image" : image,
+                "enclosure" : enclosure
+            }
+        )
