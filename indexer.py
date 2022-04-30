@@ -116,7 +116,9 @@ for file in listOfFiles:
                 "match": {
                     "episode_name": title
                 }
-            }
+            },
+            source=["episode_name"],
+            size=1
         )
 
         if res["hits"]["total"]["value"] == 0 or title not in res["hits"]["hits"][0]["_source"]["episode_name"]:
