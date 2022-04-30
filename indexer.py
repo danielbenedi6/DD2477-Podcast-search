@@ -5,14 +5,15 @@ from itertools import chain
 import os
 from getpass import getpass
 import xml.etree.ElementTree as ET
+from datetime import datetime
 
 PATH='spotify-podcasts-2020/'
 FILE=PATH+'metadata-summarization-testset.tsv'
 TRANSCRIPTS=PATH+'podcasts-transcripts-summarization-testset'
 RSS=PATH+'show-rss-summarization-testset'
 
-AUTH=("elastic",'')
-FINGERPRINT=''
+AUTH=("elastic",'4a8d55e799c357eb')
+FINGERPRINT='63fc9699288e16b67200a15ed474b8794b5ddab8'
 CA_CERT=''
 
 if AUTH[1] == "":
@@ -47,7 +48,7 @@ else:
                         ssl_assert_fingerprint=FINGERPRINT
                         )
 
-
+"""
 print("Parsing metadata file...")
 data = list(chain.from_iterable([[{"index": {"_index":"spotify-podcasts"}}, row] for row in csv.DictReader(open(FILE, newline=''),delimiter='\t')]))
 
@@ -90,6 +91,8 @@ for file in listOfFiles:
             }
         )
 
+"""
+
 es.indices.refresh(index="spotify-podcasts")
 
 print("Parsing and uploading rss...")
@@ -109,26 +112,30 @@ for file in listOfFiles:
 
         res = es.search(
             index='spotify-podcasts',
-            query = {
-                "constant_score": {
-                    "filter":{
-                        "term":{
-                            "episode_name" : title
-                        }
-                    }
+            query={
+                "match": {
+                    "episode_name": title
                 }
             }
         )
-        if res["hits"]["total"]["value"] == 0:
+
+        if res["hits"]["total"]["value"] == 0 or title not in res["hits"]["hits"][0]["_source"]["episode_name"]:
             continue
         _id = res["hits"]["hits"][0]["_id"]
 
-        pubDate = episode.find('pubDate').text
+        try:
+            pubDate = datetime.strptime(episode.find('pubDate').text, '%a, %d %b %Y %H:%M:%S %Z')
+        except:
+            try:
+                pubDate = datetime.strptime(episode.find('pubDate').text, '%a, %d %b %Y %H:%M:%S %z')
+            except:
+                pubDate = episode.find('pubDate').text
+
         try:
             image = episode.find('itunes:image', ns).attrib['href']
         except:
             try:
-                image = episode.find('image').attrib['href']
+                image = root.find('channel').find('itunes:image', ns).attrib['href']
             except:
                 print("No image for " + file)
                 image = ""
