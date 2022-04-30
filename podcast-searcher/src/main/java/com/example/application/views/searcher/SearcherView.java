@@ -1,6 +1,7 @@
 package com.example.application.views.searcher;
 
 import com.example.application.views.MainLayout;
+import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -16,6 +17,15 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import org.apache.commons.lang3.NotImplementedException;
 
+import javax.sound.sampled.*;
+import java.applet.Applet;
+import java.applet.AudioClip;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,7 +78,7 @@ public class SearcherView extends Div  {
 
         TextArea podcastContent = new TextArea();
         podcastContent.setWidthFull();
-        podcastContent.setLabel(podcast.getEpisode_name());
+        podcastContent.setLabel("[Episode name: " + podcast.getEpisode_name() + "]---[Publisher: " + podcast.publisher + "]---[Episode date: " + podcast.getPubDate() + "]");
         podcastContent.setValueChangeMode(ValueChangeMode.EAGER);
         podcastContent.setValue(podcast.getTranscript());
         podcastContent.setEnabled(false);
@@ -82,8 +92,9 @@ public class SearcherView extends Div  {
         playButton.getStyle().set("color","#1DB954");
         playButton.setHeightFull();
         playButton.addClickListener(click -> {
-            playPodcastById(podcast.getId());
+            playPodcast(podcast.getEnclosure());
         });
+
 
         text_playButton_layout.add(podcastContent, playButton);
         text_playButton_layout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
@@ -92,8 +103,8 @@ public class SearcherView extends Div  {
 
         return text_playButton_layout;
     }
-    private static Podcast createPodcast(String episode_name, String show_name, String content, String episode_uri) {
-        return new Podcast(episode_name, show_name, content, episode_uri);
+    private static Podcast createPodcast(String episode_name, String show_name, String content, String episode_uri, String pubDate, String enclosure, String publisher) {
+        return new Podcast(episode_name, show_name, content, episode_uri, pubDate, enclosure, publisher);
     }
 
     public ArrayList<Podcast> searchPodcasts(String query, int seconds){
@@ -119,7 +130,7 @@ public class SearcherView extends Div  {
             else {
                 currentContent = (partialLorem);
             }
-            podcastList.add(new Podcast((cont)+" result title", (cont)+" show name",currentContent, "https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
+            //podcastList.add(new Podcast((cont)+" result title", (cont)+" show name",currentContent, "https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
             cont++;
         }
         splitAndShowResultsInPages(podcastList);
@@ -165,7 +176,22 @@ public class SearcherView extends Div  {
         updateButtonsAndPageDiv();
     }
 
-    private void playPodcastById(int id){
-        System.out.println("Not implemented yet (play podcast)");
+    private void playPodcast(String enclosure){
+        getUI().get().getPage().open(enclosure);
+        System.out.println("play!");
+//        try {
+//            Clip music = AudioSystem.getClip();
+//            File sourceFile = new File(enclosure);
+//            AudioInputStream ais = AudioSystem.getAudioInputStream(sourceFile);
+//            music.open(ais);
+//            music.start();
+//        } catch (LineUnavailableException e) {
+//            e.printStackTrace();
+//        } catch (UnsupportedAudioFileException e) {
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+
     }
 }
