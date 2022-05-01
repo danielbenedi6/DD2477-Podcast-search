@@ -103,9 +103,6 @@ public class SearcherView extends Div  {
 
         return text_playButton_layout;
     }
-    private static Podcast createPodcast(String episode_name, String show_name, String content, String episode_uri, String pubDate, String enclosure, String publisher) {
-        return new Podcast(episode_name, show_name, content, episode_uri, pubDate, enclosure, publisher);
-    }
 
     public ArrayList<Podcast> searchPodcasts(String query, int seconds){
         throw new NotImplementedException("Implement searchPodcasts function (SearcherView class)");
@@ -178,20 +175,6 @@ public class SearcherView extends Div  {
 
     private void playPodcast(String enclosure){
         getUI().get().getPage().open(enclosure);
-        System.out.println("play!");
-//        try {
-//            Clip music = AudioSystem.getClip();
-//            File sourceFile = new File(enclosure);
-//            AudioInputStream ais = AudioSystem.getAudioInputStream(sourceFile);
-//            music.open(ais);
-//            music.start();
-//        } catch (LineUnavailableException e) {
-//            e.printStackTrace();
-//        } catch (UnsupportedAudioFileException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
+        System.out.println("redirect to play!");
     }
 }

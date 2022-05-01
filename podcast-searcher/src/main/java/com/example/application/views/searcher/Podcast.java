@@ -2,6 +2,8 @@ package com.example.application.views.searcher;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.Date;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Podcast implements Comparable<Podcast>{
 
@@ -9,7 +11,7 @@ public class Podcast implements Comparable<Podcast>{
     String show_name;
     String transcript;
     String episode_uri;
-    String pubDate;
+    Date pubDate;
     String enclosure;
     String publisher;
 
@@ -20,13 +22,12 @@ public class Podcast implements Comparable<Podcast>{
         this.episode_name = "";
         this.show_name = "";
         this.transcript = "";
-        this.pubDate = "";
         this.enclosure = "";
         this.publisher = "";
         this.id = -1;
     }
 
-    public Podcast(String episode_name, String show_name, String transcript, String episode_uri, String pubDate, String enclosure, String publisher) {
+    public Podcast(String episode_name, String show_name, String transcript, String episode_uri, Date pubDate, String enclosure, String publisher) {
         this.episode_name = episode_name;
         this.transcript = transcript;
         this.show_name = show_name;
@@ -85,9 +86,9 @@ public class Podcast implements Comparable<Podcast>{
         this.episode_uri = episode_uri;
     }
 
-    public String getPubDate(){ return  pubDate;}
+    public Date getPubDate(){ return  pubDate;}
 
-    public void setPubDate(String pubDate) { this.pubDate = pubDate;}
+    public void setPubDate(Date pubDate) { this.pubDate = pubDate;}
 
     public String getEnclosure(){ return  enclosure;}
 

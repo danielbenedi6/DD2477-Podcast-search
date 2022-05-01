@@ -84,7 +84,8 @@ public class ElasticService {
                     .index("spotify-podcasts")
                     .query(q -> q
                             .bool(b -> b
-                                    .should(episode_description, show_description, transcript))),
+                                    .should(episode_description, show_description, transcript)))
+                            .size(1027),
                     Podcast.class);
 
             List<Podcast> results = new ArrayList<>();

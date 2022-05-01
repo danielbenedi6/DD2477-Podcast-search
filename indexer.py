@@ -12,8 +12,8 @@ FILE=PATH+'metadata-summarization-testset.tsv'
 TRANSCRIPTS=PATH+'podcasts-transcripts-summarization-testset'
 RSS=PATH+'show-rss-summarization-testset'
 
-AUTH=("elastic",'4a8d55e799c357eb')
-FINGERPRINT='63fc9699288e16b67200a15ed474b8794b5ddab8'
+AUTH=("elastic",'2HDh8FRFBlcQ6oe4IY*G')
+FINGERPRINT='87e5440afcb16bf390e37a4c5057c307eb9642c80d1244b96f487289d16c6420'
 CA_CERT=''
 
 if AUTH[1] == "":
@@ -48,52 +48,53 @@ else:
                         ssl_assert_fingerprint=FINGERPRINT
                         )
 
-"""
-print("Parsing metadata file...")
-data = list(chain.from_iterable([[{"index": {"_index":"spotify-podcasts"}}, row] for row in csv.DictReader(open(FILE, newline=''),delimiter='\t')]))
 
-print("Uploading metadata...")
-res = es.bulk(operations=data,index='spotify-podcasts')
-es.indices.refresh(index="spotify-podcasts")
 
-print("Parsing and uploading transcripts...")
-listOfFiles = list()
-for (dirpath, dirnames, filenames) in os.walk(TRANSCRIPTS):
-    listOfFiles += [os.path.join(dirpath, file) for file in filenames]
+# print("Parsing metadata file...")
+# data = list(chain.from_iterable([[{"index": {"_index":"spotify-podcasts-test"}}, row] for row in csv.DictReader(open(FILE, newline='', encoding='UTF-8'),delimiter='\t')]))
 
-for file in listOfFiles:
-    res = es.search(
-            index='spotify-podcasts', 
-            query = {
-                "match": {
-                    "episode_filename_prefix" : file.split('/')[-1].split('.')[0]
-                }
-            }
-        )
+# print("Uploading metadata...")
+# res = es.bulk(operations=data,index='spotify-podcasts-test')
+# es.indices.refresh(index="spotify-podcasts-test")
 
-    _id = res["hits"]["hits"][0]["_id"]
-    transcript = json.load(open(file))
-    text = ""
-    words = []
-    for chunk in transcript["results"]:
-        data = chunk["alternatives"][0]
-        if "transcript" in data and "words" in data:
-            text += data["transcript"]
-            words += data["words"]
-    
-    res = es.update(
-            index = 'spotify-podcasts',
-            id = _id,
-            doc = {
-                "transcript" : text,
-                "words" : words,
-                "raw" : transcript
-            }
-        )
+# print("Parsing and uploading transcripts...")
+# listOfFiles = list()
+# for (dirpath, dirnames, filenames) in os.walk(TRANSCRIPTS):
+#     listOfFiles += [os.path.join(dirpath, file) for file in filenames]
 
-"""
+# for file in listOfFiles:
+#     res = es.search(
+#             index='spotify-podcasts-test', 
+#             query = {
+#                 "match": {
+#                     "episode_filename_prefix" : file.split('/')[-1].split('.')[0]
+#                 }
+#             }
+#         )
 
-es.indices.refresh(index="spotify-podcasts")
+#     _id = res["hits"]["hits"][0]["_id"]
+#     transcript = json.load(open(file))
+#     text = ""
+#     clips = []
+#     for chunk in transcript["results"]:
+#         data = chunk["alternatives"][0]
+
+#         if "transcript" in data and "words" in data:
+#             text += data["transcript"]
+#         clips += [data]
+
+#     res = es.update(
+#             index = 'spotify-podcasts-test',
+#             id = _id,
+#             doc = {
+#                 "clips": clips,
+#                 "transcript" : text
+#             }
+#         )
+
+
+
+# es.indices.refresh(index="spotify-podcasts-test")
 
 print("Parsing and uploading rss...")
 listOfFiles = list()
@@ -111,7 +112,7 @@ for file in listOfFiles:
         title = episode.find('title').text
 
         res = es.search(
-            index='spotify-podcasts',
+            index='spotify-podcasts-test',
             query={
                 "match": {
                     "episode_name": title
@@ -148,7 +149,7 @@ for file in listOfFiles:
             enclosure = ""
 
         res = es.update(
-            index = 'spotify-podcasts',
+            index = 'spotify-podcasts-test',
             id = _id,
             doc = {
                 "pubDate" : pubDate,
