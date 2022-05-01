@@ -5,9 +5,11 @@ import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.elasticsearch.core.termvectors.Term;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
+import com.example.application.views.searcher.Clip;
 import com.example.application.views.searcher.Podcast;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -35,7 +37,6 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -72,64 +73,34 @@ public class ElasticService {
         client = new ElasticsearchClient(transport);
     }
 
-    public List<Podcast> search(String query, float seconds){
+    public List<Podcast> search(String query, float minutes){
         try {
             List<FieldValue> fields = Stream.of(query.split(" ")).map(FieldValue::of).collect(java.util.stream.Collectors.toList());
 
-            Query episode_description = new Query.Builder().terms(t -> t.field("episode_description").terms(ft->ft.value(fields))).build();
-            Query show_description = new Query.Builder().terms(t -> t.field("show_description").terms(ft->ft.value(fields))).build();
             Query transcript = new Query.Builder().terms(t -> t.field("transcript").terms(ft->ft.value(fields))).build();
 
             SearchResponse<Podcast> search = client.search(s -> s
-                    .index("spotify-podcasts")
-                    .query(q -> q
-                            .bool(b -> b
-                                    .should(episode_description, show_description, transcript)))
+                        .index("spotify-podcasts-test")
+                            .query(q -> q
+                                .bool(b -> b
+                                    .must(transcript)
+                                )
+                            )
                             .size(1027),
                     Podcast.class);
 
             List<Podcast> results = new ArrayList<>();
             for(Hit<Podcast> hit : search.hits().hits()){
-                System.out.println("episode name " + hit.source().getEpisode_name());
-                System.out.println("show name " + hit.source().getShow_name());
-                System.out.println("episode uri " + hit.source().getEpisode_uri());
-                System.out.println("pubDate " + hit.source().getPubDate());
-                System.out.println("enclosure" + hit.source().getEnclosure());
-                System.out.println();
-                results.add(hit.source());
-                //double tf_idf = hit.score();
-            }
-            System.out.println(results.size() + " results found");
-            return results;
-        } catch(Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public List<Podcast> searchByEpisodeName(String query, float seconds){
-        try {
-            List<FieldValue> fields = Stream.of(query.split(" ")).map(FieldValue::of).collect(java.util.stream.Collectors.toList());
-
-            Query episode_name = new Query.Builder().terms(t -> t.field("episode_name").terms(ft->ft.value(fields))).build();
-
-            SearchResponse<Podcast> search = client.search(s -> s
-                            .index("spotify-podcasts")
-                            .query(q -> q
-                                    .bool(b -> b
-                                            .should(episode_name))),
-                    Podcast.class);
-
-            List<Podcast> results = new ArrayList<>();
-            for(Hit<Podcast> hit : search.hits().hits()){
-                System.out.println("episode name " + hit.source().getEpisode_name());
-                System.out.println("show name " + hit.source().getShow_name());
-                System.out.println("episode uri " + hit.source().getEpisode_uri());
-                System.out.println("pubDate " + hit.source().getPubDate());
-                System.out.println("enclosure " + hit.source().getEnclosure());
-                System.out.println();
-                results.add(hit.source());
-                //double tf_idf = hit.score();
+                if (hit.source() != null){
+                    System.out.println("episode name " + hit.source().getEpisode_name());
+                    System.out.println("show name " + hit.source().getShow_name());
+                    System.out.println("episode uri " + hit.source().getEpisode_uri());
+                    System.out.println("pubDate " + hit.source().getPubDate());
+                    System.out.println("enclosure" + hit.source().getEnclosure());
+                    //System.out.println("test" + hit.source().getClips().get(0));
+                    System.out.println();
+                    results.add(hit.source());
+                }
             }
             System.out.println(results.size() + " results found");
             return results;

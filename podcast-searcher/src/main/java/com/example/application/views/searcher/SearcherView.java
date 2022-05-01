@@ -80,7 +80,7 @@ public class SearcherView extends Div  {
         podcastContent.setWidthFull();
         podcastContent.setLabel("[Episode name: " + podcast.getEpisode_name() + "]---[Publisher: " + podcast.publisher + "]---[Episode date: " + podcast.getPubDate() + "]");
         podcastContent.setValueChangeMode(ValueChangeMode.EAGER);
-        podcastContent.setValue(podcast.getTranscript());
+        //podcastContent.setValue(podcast.getTranscript());
         podcastContent.setEnabled(false);
         podcastContent.getStyle().set("font-size", "14px");
         podcastContent.getStyle().set("font-weight", "bold");
