@@ -110,7 +110,7 @@ public class MainLayout extends AppLayout {
         searchField.setPrefixComponent(new Icon("search"));
         // IntegerField (duration in seconds)
         IntegerField secondsField = new IntegerField();
-        secondsField.setValue(2);
+        secondsField.setValue(60);
         Div secSuffix = new Div();
         secSuffix.setText("sec");
         Div segmentPrefix = new Div();
@@ -143,7 +143,6 @@ public class MainLayout extends AppLayout {
 
     private void searchQuery(String query, int seconds){
         searcherView.splitAndShowResultsInPages(service.search(query, seconds));
-        //searcherView.splitAndShowResultsInPages(service.searchByEpisodeName(query, seconds));
         setContent(searcherView);
     }
 

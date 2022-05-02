@@ -1,7 +1,9 @@
 package com.example.application.views.searcher;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Words {
     @JsonProperty("startTime")
     private String startTime;
@@ -11,6 +13,8 @@ public class Words {
     private String word;
     @JsonProperty("speakerTag")
     private String speakerTag;
+
+
 
     public Words(){
         this.startTime = "";

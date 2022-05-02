@@ -26,7 +26,7 @@ public class Podcast {
         this.episode_name = "";
         this.show_name = "";
         this.transcript = "";
-        //this.clips = new ArrayList<Clip>();
+        this.clips = new ArrayList<>();
         this.enclosure = "";
         this.publisher = "";
         this.id = -1;
@@ -34,7 +34,7 @@ public class Podcast {
 
     public Podcast(String episode_name, String show_name, String transcript, List<Clip> clips, String episode_uri, Date pubDate, String enclosure, String publisher) {
         this.episode_name = episode_name;
-        //this.clips = clips;
+        this.clips = clips;
         this.show_name = show_name;
         this.episode_uri = episode_uri;
         this.pubDate = pubDate;
@@ -45,7 +45,7 @@ public class Podcast {
     public Podcast(Podcast podcast){
         this.episode_name = podcast.getEpisode_name();
         this.show_name = podcast.getShow_name();
-        //this.clips = podcast.getClips();
+        this.clips = podcast.getClips();
         this.episode_uri = podcast.getEpisode_uri();
         this.pubDate = podcast.getPubDate();
         this.enclosure =podcast.getEnclosure();
@@ -77,13 +77,13 @@ public class Podcast {
         this.id = id;
     }
 
-//    public List<Clip> getClips() {
-//        return clips;
-//    }
-//
-//    public void setClips(List<Clip> clips) {
-//        this.clips = clips;
-//    }
+    public List<Clip> getClips() {
+        return clips;
+    }
+
+    public void setClips(List<Clip> clips) {
+        this.clips = clips;
+    }
 
     public String getEpisode_uri() {
         return episode_uri;

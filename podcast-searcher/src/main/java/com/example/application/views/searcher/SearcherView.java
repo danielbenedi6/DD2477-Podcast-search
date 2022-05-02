@@ -1,7 +1,6 @@
 package com.example.application.views.searcher;
 
 import com.example.application.views.MainLayout;
-import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -16,16 +15,6 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import org.apache.commons.lang3.NotImplementedException;
-
-import javax.sound.sampled.*;
-import java.applet.Applet;
-import java.applet.AudioClip;
-import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,22 +23,22 @@ import java.util.List;
 @RouteAlias(value = "", layout = MainLayout.class)
 public class SearcherView extends Div  {
 
-    Grid<Podcast> grid = new Grid<>();
+    Grid<ClipCard> grid = new Grid<>();
     private HorizontalLayout pageButtonsLayout;
     public static final int PAGE_SIZE = 10;
     private int currPage = 0;
     private int maxPage;
     Button arrowLeftButton, arrowRightButton;
     Div pageNumberDiv;
-    public List<Podcast> podcasts;
+    public List<ClipCard> cardList;
 
     public SearcherView() {
-        podcasts = new ArrayList<>();
+        cardList = new ArrayList<>();
         addClassName("searcher-view");
         setSizeFull();
         grid.setHeight("85%");
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
-        grid.addComponentColumn(this::createPodcastCard);
+        grid.addComponentColumn(this::createClipCard);
         grid.setVerticalScrollingEnabled(true);
 
         arrowLeftButton = new Button("Prev", new Icon(VaadinIcon.ARROW_LEFT));
@@ -73,14 +62,14 @@ public class SearcherView extends Div  {
         add(pageButtonsLayout);
     }
 
-    private HorizontalLayout createPodcastCard(Podcast podcast) {
+    private HorizontalLayout createClipCard(ClipCard clipCard) {
         HorizontalLayout text_playButton_layout = new HorizontalLayout();
 
         TextArea podcastContent = new TextArea();
         podcastContent.setWidthFull();
-        podcastContent.setLabel("[Episode name: " + podcast.getEpisode_name() + "]---[Publisher: " + podcast.publisher + "]---[Episode date: " + podcast.getPubDate() + "]");
+        podcastContent.setLabel("[Episode name: " + clipCard.getEpisode_name() + "]---[Publisher: " + clipCard.getPublisher() + "]---[Episode date: " + clipCard.getPubDate() + "]");
         podcastContent.setValueChangeMode(ValueChangeMode.EAGER);
-        //podcastContent.setValue(podcast.getTranscript());
+        podcastContent.setValue(clipCard.getTranscript());
         podcastContent.setEnabled(false);
         podcastContent.getStyle().set("font-size", "14px");
         podcastContent.getStyle().set("font-weight", "bold");
@@ -92,7 +81,7 @@ public class SearcherView extends Div  {
         playButton.getStyle().set("color","#1DB954");
         playButton.setHeightFull();
         playButton.addClickListener(click -> {
-            playPodcast(podcast.getEnclosure());
+            playPodcast(clipCard.getEnclosure());
         });
 
 
@@ -111,39 +100,18 @@ public class SearcherView extends Div  {
     public void insertPodcast(Podcast podcast){
         List<Podcast> podcastList = new ArrayList<>();
         podcastList.add(podcast);
-        grid.setItems(podcastList);
+        grid.setItems(cardList);
     }
-
-    public void insertPodcastNtimes(int n){
-        int cont = 0;
-        List<Podcast> podcastList = new ArrayList<>();
-        String lorem = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ips";
-        String partialLorem = "Lorem Ipsum is simply dummy text of the printing and typesetting industry.";
-        String currentContent;
-        while(cont<n){
-            if (cont%3==0) {
-                currentContent = (lorem);
-            }
-            else {
-                currentContent = (partialLorem);
-            }
-            //podcastList.add(new Podcast((cont)+" result title", (cont)+" show name",currentContent, "https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
-            cont++;
-        }
-        splitAndShowResultsInPages(podcastList);
-    }
-
-    public void splitAndShowResultsInPages(List<Podcast> podcastList){
-        podcasts = podcastList;
-        int n = podcasts.size();
+    public void splitAndShowResultsInPages(List<ClipCard> cardList){
+        this.cardList = cardList;
+        int n = cardList.size();
         int topPAGESIZEidx = Math.min(n, PAGE_SIZE);
         currPage = 0;
         maxPage = (int) Math.ceil((double) n/PAGE_SIZE);
 
-        List<Podcast> topPAGESIZE = podcasts.subList(0, topPAGESIZEidx);
+        List<ClipCard> topPAGESIZE = cardList.subList(0, topPAGESIZEidx);
         grid.setItems(topPAGESIZE);
         grid.recalculateColumnWidths();
-
         updateButtonsAndPageDiv();
         pageButtonsLayout.setVisible(true);
         pageNumberDiv.setVisible(true);
@@ -161,15 +129,15 @@ public class SearcherView extends Div  {
     public void nextPage(){
         currPage++;
         int start_idx = currPage*PAGE_SIZE;
-        int end_idx = Math.min(podcasts.size(), (start_idx + PAGE_SIZE));
-        grid.setItems(podcasts.subList(start_idx, end_idx));
+        int end_idx = Math.min(cardList.size(), (start_idx + PAGE_SIZE));
+        grid.setItems(cardList.subList(start_idx, end_idx));
         updateButtonsAndPageDiv();
     }
 
     public void previousPage(){
         currPage--;
         int start_idx = currPage*PAGE_SIZE;
-        grid.setItems(podcasts.subList(start_idx, start_idx+PAGE_SIZE));
+        grid.setItems(cardList.subList(start_idx, start_idx+PAGE_SIZE));
         updateButtonsAndPageDiv();
     }
 

@@ -1,9 +1,12 @@
 package com.example.application.views.searcher;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Date;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Clip {
     @JsonProperty("transcript")
     private String transcript;
@@ -11,6 +14,7 @@ public class Clip {
     private float confidence;
     @JsonProperty("words")
     private List<Words> words;
+
 
     public Clip(){
         this.transcript = "";
@@ -35,5 +39,13 @@ public class Clip {
 
     public void setTranscript(String transcript) {
         this.transcript = transcript;
+    }
+
+    public List<Words> getWords() {
+        return words;
+    }
+
+    public void setWords(List<Words> words) {
+        this.words = words;
     }
 }
