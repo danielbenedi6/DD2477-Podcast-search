@@ -4,6 +4,7 @@ import java.util.Date;
 
 public class ClipCard {
     private String transcript;
+    private String episode_uri;
     private String episode_name;
     private Date pubDate;
     private String enclosure;
@@ -15,11 +16,11 @@ public class ClipCard {
     public  ClipCard(){
 
     }
-    public ClipCard(String transcript, String episode_name, Date pubDate, String enclosure, String publisher, float duration, float startTime, float endTime){
+    public ClipCard(String transcript, String episode_name, Date pubDate, String episode_uri, String publisher, float duration, float startTime, float endTime){
         this.transcript = transcript;
         this.episode_name = episode_name;
         this.pubDate = pubDate;
-        this.enclosure = enclosure;
+        this.episode_uri = episode_uri;
         this.publisher = publisher;
         this.duration = duration;
         this.startTime = startTime;
@@ -87,5 +88,30 @@ public class ClipCard {
 
     public float getStartTime() {
         return startTime;
+    }
+
+    public String getEpisode_uri() {
+        return episode_uri;
+    }
+
+    public void setEpisode_uri(String episode_uri) {
+        this.episode_uri = episode_uri;
+    }
+
+    public void plusTimeStamp(){
+        String durationStr = "\n\n---Duration: " + this.getDuration() + "s\n";
+        String startTime = "---Start Timestamp: " + convertSeconds(this.getStartTime()) + "\n";
+        String endTime = "---End Timestamp: " + convertSeconds(this.getEndTime()) + "\n";
+        this.setTranscript(this.getTranscript() + durationStr + startTime + endTime);
+    }
+
+    private String convertSeconds(float seconds){
+        int temp = (int) seconds;
+        int hh = temp / 3600;
+        int mm = (temp % 3600) / 60;
+        int ss = (temp % 3600) % 60;
+        return (hh < 10 ? ("0" + hh) : hh) + ":" +
+                (mm < 10 ? ("0" + mm) : mm) + ":" +
+                (ss < 10 ? ("0" + ss) : ss);
     }
 }

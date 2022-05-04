@@ -25,7 +25,7 @@ public class SearcherView extends Div  {
 
     Grid<ClipCard> grid = new Grid<>();
     private HorizontalLayout pageButtonsLayout;
-    public static final int PAGE_SIZE = 10;
+    public static final int PAGE_SIZE = 2;
     private int currPage = 0;
     private int maxPage;
     Button arrowLeftButton, arrowRightButton;
@@ -81,7 +81,7 @@ public class SearcherView extends Div  {
         playButton.getStyle().set("color","#1DB954");
         playButton.setHeightFull();
         playButton.addClickListener(click -> {
-            playPodcast(clipCard.getEnclosure());
+            playPodcast(clipCard.getEpisode_uri());
         });
 
 
@@ -141,8 +141,8 @@ public class SearcherView extends Div  {
         updateButtonsAndPageDiv();
     }
 
-    private void playPodcast(String enclosure){
-        getUI().get().getPage().open(enclosure);
+    private void playPodcast(String uri){
+        getUI().get().getPage().open(uri);
         System.out.println("redirect to play!");
     }
 }
