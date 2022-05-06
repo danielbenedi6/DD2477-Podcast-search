@@ -41,8 +41,8 @@ public class ElasticService {
     private final static String ELASTIC_URL = "localhost";
     private final static int ELASTIC_PORT = 9200;
     private final static String ELASTIC_USERNAME = "elastic";
-    private final static String ELASTIC_PASSWORD = "4a8d55e799c357eb";
-    private final static Path caCertificatePath = Paths.get("../es01.crt");
+    private final static String ELASTIC_PASSWORD = "2HDh8FRFBlcQ6oe4IY*G";
+    private final static Path caCertificatePath = Paths.get("C:\\Users\\pppp\\Desktop\\DD2477-Podcast-search\\DD2477-Podcast-search\\podcast-searcher\\http_ca.crt");
 
     public ElasticService() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
         CertificateFactory factory = CertificateFactory.getInstance("X.509");
@@ -89,6 +89,8 @@ public class ElasticService {
         try {
 
             String finalQuery = query.replaceAll("[^\\w\\s]", "").toLowerCase();
+            String[] queryList = query.split(" ");
+
             SearchResponse<Podcast> response = client.search(
                     s -> s.index("spotify-podcasts-test")
                             .query(q -> q.match(m -> m.field("clips.words.word")
@@ -122,45 +124,68 @@ public class ElasticService {
             HashMap<String, Float> idf = new HashMap<>();
             List<Podcast> podcasts = new ArrayList<>();
             for (Hit<Podcast> result : response.hits().hits()) {
-                result.explanation().details().forEach(detail -> {
-                    String term = detail.description().replaceAll("(^weight\\(clips.words.word:)|( .*$)","");
+                if(queryList.length > 1){
+                    result.explanation().details().forEach(detail -> {
+                        String term = detail.description().replaceAll("(^weight\\(clips.words.word:)|( .*$)","");
+                        if(!idf.containsKey(term)) {
+                            Float idf_t = detail.value();
+                            idf.put(term, idf_t);
+                        }
+                    });
+                }else{
+                    String term = result.explanation().description().replaceAll("(^weight\\(clips.words.word:)|( .*$)","");
                     if(!idf.containsKey(term)) {
-                        Float idf_t = detail.details().get(0).details().get(1).value();
+                        Float idf_t = result.explanation().details().get(0).value();
                         idf.put(term, idf_t);
                     }
-                });
+                }
+                System.out.println("size: "+idf.size());
+                for (Map.Entry<String, Float> entry : idf.entrySet()){
+                    System.out.println("key= " + entry.getKey() + " and value= " + entry.getValue());
+                }
 
                 Podcast r = result.source();
                 List<Fragment> fragments = new ArrayList<>();
                 for(Clip clip : r.getClips()) {
                     for(int i = 0; i < clip.getWords().size(); i++) {
-                        if(query.contains(clip.getWords().get(i).getWord().replaceAll("[^\\w\\s]", "").toLowerCase())) {
+                        String clip_word = clip.getWords().get(i).getWord().replaceAll("[^\\w\\s]", "").toLowerCase();
+                        if(containsTerm(queryList, clip_word)) {
                             Float score_t = 0.0f;
                             StringBuilder fragment = new StringBuilder();
                             int j = Math.max(i-5, 0);
                             double begin = clip.getWords().get(j).getStartTimeAsDouble();
-                            String begin_s = clip.getWords().get(j).getStartTime();
+                            String begin_s = convertSeconds(begin);
                             String end_s = "";
                             while(j < clip.getWords().size()) {
                                 if(clip.getWords().get(j).getEndTimeAsDouble() - begin > seconds) {
+                                    i = Math.max(i, j - 1);
                                     break;
                                 }
-                                if(query.contains(clip.getWords().get(j).getWord().replaceAll("[^\\w\\s]", ""))) {
-                                    fragment.append("<b>").append(clip.getWords().get(j).getWord()).append("</b> ");
+                                String fragment_word = clip.getWords().get(j).getWord().replaceAll("[^\\w\\s]", "").toLowerCase();
+                                if(containsTerm(queryList, fragment_word)) {
+                                    fragment.append("<font color=\"#FFFF00\">").append(clip.getWords().get(j).getWord()).append("</font> ");
+                                    System.out.println(clip.getWords().get(j).getWord());
+                                    System.out.println(idf.getOrDefault(clip.getWords().get(j).getWord(), 0.0f));
                                     score_t += idf.getOrDefault(clip.getWords().get(j).getWord(), 0.0f);
                                 }else{
                                     fragment.append(clip.getWords().get(j).getWord()).append(" ");
                                 }
-                                end_s = clip.getWords().get(j).getEndTime();
+                                end_s = convertSeconds(clip.getWords().get(j).getEndTimeAsDouble());
                                 j++;
                             }
                             if(fragment.length() > 0) {
-                                fragments.add(new Fragment("..."+fragment.toString()+"...",score_t,begin_s,end_s));
+                                //fragments.add(new Fragment("..."+fragment.toString()+"...",score_t,begin_s,end_s));
+                                fragments.add(new Fragment("..."+fragment.toString()+"...",score_t,""+i,""+j));
                             }
                         }
                     }
                 }
+//                System.out.println("-----------");
+//                System.out.println(fragments.get(0).getScore() + " : " + fragments.get(0).getFragment());
                 Collections.sort(fragments);
+//                System.out.println(fragments.get(0).getScore() + " : " + fragments.get(0).getFragment());
+//                System.out.println(fragments.get(fragments.size()-1).getScore() + " : " + fragments.get(fragments.size()-1).getFragment());
+//                System.out.println("-----------");
                 r.setResultFragments(fragments);
                 podcasts.add(r);
             }
@@ -170,5 +195,24 @@ public class ElasticService {
             e.printStackTrace();
             return new Result();
         }
+    }
+
+    public boolean containsTerm(String[] queryList, String word){
+        for (String term: queryList){
+            if (term.toLowerCase().equals(word)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String convertSeconds(double seconds){
+        int temp = (int) seconds;
+        int hh = temp / 3600;
+        int mm = (temp % 3600) / 60;
+        int ss = (temp % 3600) % 60;
+        return (hh < 10 ? ("0" + hh) : hh) + ":" +
+                (mm < 10 ? ("0" + mm) : mm) + ":" +
+                (ss < 10 ? ("0" + ss) : ss);
     }
 }

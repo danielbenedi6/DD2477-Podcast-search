@@ -111,7 +111,7 @@ public class SearcherView extends Div  {
 
         StringBuilder contentSB = new StringBuilder();
         for(int i = 0; i < Math.min(podcast.getResultFragments().size(), MAX_FRAGMENTS); i++) {
-            Fragment f = podcast.getResultFragments().get(i);
+            Fragment f = podcast.getResultFragments().get(podcast.getResultFragments().size()-i-1);
             contentSB.append("(")
                     .append(f.getBegin())
                     .append(",")

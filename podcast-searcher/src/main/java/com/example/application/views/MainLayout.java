@@ -121,7 +121,7 @@ public class MainLayout extends AppLayout {
         searchField.setPrefixComponent(new Icon("search"));
         // IntegerField (duration in seconds)
         secondsField = new IntegerField();
-        secondsField.setValue(60);
+        secondsField.setValue(4);
         secSuffix = new Div();
         secSuffix.setText("sec");
         segmentPrefix = new Div();
