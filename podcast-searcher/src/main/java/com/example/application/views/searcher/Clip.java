@@ -12,11 +12,17 @@ public class Clip {
     @JsonProperty("words")
     private List<Word> words;
 
+
+    @JsonProperty("transcript")
+    private String transcript;
+
     public Clip(){
         words = new ArrayList<>();
+        transcript = "";
     }
-    public Clip(List<Word> words){
+    public Clip(List<Word> words, String transcript) {
         this.words = words;
+        this.transcript = transcript;
     }
 
     public List<Word> getWords() {
@@ -25,5 +31,12 @@ public class Clip {
 
     public void setWords(List<Word> words) {
         this.words = words;
+    }
+    public String getTranscript() {
+        return transcript;
+    }
+
+    public void setTranscript(String transcript) {
+        this.transcript = transcript;
     }
 }

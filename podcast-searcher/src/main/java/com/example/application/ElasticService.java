@@ -41,8 +41,8 @@ public class ElasticService {
     private final static String ELASTIC_URL = "localhost";
     private final static int ELASTIC_PORT = 9200;
     private final static String ELASTIC_USERNAME = "elastic";
-    private final static String ELASTIC_PASSWORD = "2HDh8FRFBlcQ6oe4IY*G";
-    private final static Path caCertificatePath = Paths.get("C:\\Users\\pppp\\Desktop\\DD2477-Podcast-search\\DD2477-Podcast-search\\podcast-searcher\\http_ca.crt");
+    private final static String ELASTIC_PASSWORD = "4a8d55e799c357eb";
+    private final static Path caCertificatePath = Paths.get("../es01.crt");
 
     public ElasticService() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
         CertificateFactory factory = CertificateFactory.getInstance("X.509");
@@ -89,7 +89,7 @@ public class ElasticService {
         try {
 
             String finalQuery = query.replaceAll("[^\\w\\s]", "").toLowerCase();
-            String[] queryList = query.split(" ");
+            String[] queryList = finalQuery.split(" ");
 
             SearchResponse<Podcast> response = client.search(
                     s -> s.index("spotify-podcasts-test")
@@ -147,7 +147,9 @@ public class ElasticService {
                 Podcast r = result.source();
                 List<Fragment> fragments = new ArrayList<>();
                 for(Clip clip : r.getClips()) {
-                    for(int i = 0; i < clip.getWords().size(); i++) {
+                    String[] words = clip.getTranscript().split(" ");
+                    for(int i = 0; i < Math.min(words.length,clip.getWords().size()); i++) {
+                        //System.out.println("Word["+i+"]="+words[i]);
                         String clip_word = clip.getWords().get(i).getWord().replaceAll("[^\\w\\s]", "").toLowerCase();
                         if(containsTerm(queryList, clip_word)) {
                             Float score_t = 0.0f;
@@ -156,26 +158,26 @@ public class ElasticService {
                             double begin = clip.getWords().get(j).getStartTimeAsDouble();
                             String begin_s = convertSeconds(begin);
                             String end_s = "";
-                            while(j < clip.getWords().size()) {
+                            while(j < Math.min(words.length,clip.getWords().size())) {
                                 if(clip.getWords().get(j).getEndTimeAsDouble() - begin > seconds) {
-                                    i = Math.max(i, j - 1);
                                     break;
                                 }
                                 String fragment_word = clip.getWords().get(j).getWord().replaceAll("[^\\w\\s]", "").toLowerCase();
                                 if(containsTerm(queryList, fragment_word)) {
                                     fragment.append("<font color=\"#FFFF00\">").append(clip.getWords().get(j).getWord()).append("</font> ");
-                                    System.out.println(clip.getWords().get(j).getWord());
-                                    System.out.println(idf.getOrDefault(clip.getWords().get(j).getWord(), 0.0f));
-                                    score_t += idf.getOrDefault(clip.getWords().get(j).getWord(), 0.0f);
+                                    //System.out.println(clip.getWords().get(j).getWord());
+                                    //System.out.println(idf.getOrDefault(fragment_word, 0.0f));
+                                    score_t += idf.getOrDefault(fragment_word, 0.0f);
                                 }else{
                                     fragment.append(clip.getWords().get(j).getWord()).append(" ");
                                 }
                                 end_s = convertSeconds(clip.getWords().get(j).getEndTimeAsDouble());
                                 j++;
                             }
+                            //i = Math.max(i, j - 1);
                             if(fragment.length() > 0) {
-                                //fragments.add(new Fragment("..."+fragment.toString()+"...",score_t,begin_s,end_s));
-                                fragments.add(new Fragment("..."+fragment.toString()+"...",score_t,""+i,""+j));
+                                fragments.add(new Fragment("..."+fragment.toString()+"...",score_t,begin_s,end_s));
+                                //fragments.add(new Fragment("..."+fragment.toString()+"...",score_t,""+i,""+j));
                             }
                         }
                     }
