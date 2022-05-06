@@ -25,8 +25,19 @@ import org.elasticsearch.client.RestClient;
  */
 public class MainLayout extends AppLayout {
 
-    private SearcherView searcherView;
-    private ElasticService service;
+    private SearcherView searcherView = new SearcherView(this);
+    private final ElasticService service;
+
+    public Header header;
+    public Div layoutAppName;
+    public VerticalLayout verticalLayout;
+    public H1 appName;
+    public HorizontalLayout layoutSearch;
+    public TextField searchField;
+    public IntegerField secondsField;
+    public Div secSuffix;
+    public Div segmentPrefix;
+    public Button searchButton;
 
     /**
      * A simple navigation item component, based on ListItem element.
@@ -87,43 +98,43 @@ public class MainLayout extends AppLayout {
     }
 
     private Component createHeaderContent() {
-        Header header = new Header();
+        header = new Header();
         header.addClassNames("bg-base", "border-b", "border-contrast-10", "box-border", "flex", "flex-col", "w-full");
         header.setWidthFull();
-        VerticalLayout verticalLayout = new VerticalLayout();
+        verticalLayout = new VerticalLayout();
 
-        Div layoutAppName = new Div();
+        layoutAppName = new Div();
         layoutAppName.addClassNames("flex", "h-xl", "items-center", "px-l");
 
-        H1 appName = new H1("Podcast Searcher");
+        appName = new H1("Podcast Searcher");
         appName.getStyle().set("font-size", "42px");
         layoutAppName.add(appName);
 
         // search layout (textField, IntegerField, button) -> (query, seconds, search button)
-        HorizontalLayout layoutSearch = new HorizontalLayout();
+        layoutSearch = new HorizontalLayout();
         layoutSearch.setWidthFull();
         layoutSearch.getStyle().set("align","center");
         // search field (podcast query)
-        TextField searchField = new TextField("");
+        searchField = new TextField("");
         searchField.setClearButtonVisible(true);
         searchField.getStyle().set("width", "40%");
         searchField.setPrefixComponent(new Icon("search"));
         // IntegerField (duration in seconds)
-        IntegerField secondsField = new IntegerField();
+        secondsField = new IntegerField();
         secondsField.setValue(60);
-        Div secSuffix = new Div();
+        secSuffix = new Div();
         secSuffix.setText("sec");
-        Div segmentPrefix = new Div();
+        segmentPrefix = new Div();
         segmentPrefix.setText("Duration: ");
         secondsField.setPrefixComponent(segmentPrefix);
         secondsField.setSuffixComponent(secSuffix);
         secondsField.setWidth("15%");
         // search button
-        Button searchButton = new Button("Search");
+        searchButton = new Button("Search");
         searchButton.addClickListener(click ->
         {
             String query = searchField.getValue();
-            searchField.clear();
+            //searchField.clear();
             searchField.focus();
             searchQuery(query, secondsField.getValue());
         });

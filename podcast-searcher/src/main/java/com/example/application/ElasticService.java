@@ -1,33 +1,27 @@
 package com.example.application;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.FieldValue;
-import co.elastic.clients.elasticsearch._types.SortOrder;
-import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
-import co.elastic.clients.elasticsearch.core.termvectors.Term;
+import co.elastic.clients.elasticsearch.core.search.Suggestion;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.example.application.views.searcher.Clip;
-import com.example.application.views.searcher.ClipCard;
+import com.example.application.views.searcher.Fragment;
 import com.example.application.views.searcher.Podcast;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
 import org.elasticsearch.client.RestClient;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,20 +32,17 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Stream;
+import java.util.*;
 
 @Service
 public class ElasticService {
     private final ElasticsearchClient client;
 
-    private static String ELASTIC_URL = "localhost";
-    private static int ELASTIC_PORT = 9200;
-    private static String ELASTIC_USERNAME = "elastic";
-    private static String ELASTIC_PASSWORD = "2HDh8FRFBlcQ6oe4IY*G";
-    private static Path caCertificatePath = Paths.get("C:\\Users\\pppp\\Desktop\\DD2477-Podcast-search\\DD2477-Podcast-search\\podcast-searcher\\http_ca.crt");
+    private final static String ELASTIC_URL = "localhost";
+    private final static int ELASTIC_PORT = 9200;
+    private final static String ELASTIC_USERNAME = "elastic";
+    private final static String ELASTIC_PASSWORD = "4a8d55e799c357eb";
+    private final static Path caCertificatePath = Paths.get("../es01.crt");
 
     public ElasticService() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
         CertificateFactory factory = CertificateFactory.getInstance("X.509");
@@ -76,123 +67,108 @@ public class ElasticService {
         client = new ElasticsearchClient(transport);
     }
 
-    public List<ClipCard> search(String query, float seconds){
-        List<ClipCard> phrase_results = new ArrayList<>();
-        List<ClipCard> intersect_results = new ArrayList<>();
-        try {
-            //Phrase Match
-            phrase_results = phraseMatch(phrase_results, query);
-            //Intersection Match 100% match
-            intersect_results = IntersectionMatch(intersect_results, query, "100%");
+    public static class Result {
+        public List<Podcast> podcasts;
+        public String suggestion;
 
-            List<ClipCard> results = filterPhraseClip(query, phrase_results, seconds);
-            results.addAll(filterIntersectClip(query, intersect_results, seconds));
+        public Long time;
 
-            return results;
+        public Result(List<Podcast> podcasts, String suggestion, Long time) {
+            this.podcasts = podcasts;
+            this.suggestion = suggestion;
+            this.time = time;
+        }
 
-        } catch(Exception e) {
-            e.printStackTrace();
-            return new ArrayList<>();
+        public Result() {
+            this.podcasts = new ArrayList<>();
+            this.suggestion = "";
+            this.time = -1L;
         }
     }
-
-    private List<ClipCard> IntersectionMatch(List<ClipCard> raw_results, String query, String percentage){
+    public Result search(String query, float seconds) {
         try {
-            //Phrase Match
-            SearchResponse<Podcast> intersectionResp = client.search(s -> s
-                            .index("spotify-podcasts-test")
-                            .query(q -> q.
-                                    bool(b -> b.
-                                            must(mt -> mt.
-                                                    match(m -> m.
-                                                            field("clips.transcript").query(query)
-                                                    )
 
-                                            )
-                                            .minimumShouldMatch(percentage)
-                                    )
+            String finalQuery = query.replaceAll("[^\\w\\s]", "").toLowerCase();
+            SearchResponse<Podcast> response = client.search(
+                    s -> s.index("spotify-podcasts-test")
+                            .query(q -> q.match(m -> m.field("clips.words.word")
+                                                        .query(finalQuery)
+                                                )
                             )
-                            .size(30),
-                    Podcast.class);
-
-            return parseToClipCard(raw_results, intersectionResp);
-
-        }catch(Exception e) {
-            e.printStackTrace();
-            return raw_results;
-        }
-    }
-
-    private List<ClipCard> phraseMatch(List<ClipCard> raw_results, String query){
-        try {
-            //Intersect Match
-            SearchResponse<Podcast> phraseResp = client.search(s -> s
-                            .index("spotify-podcasts-test")
-                            .query(q -> q.matchPhrase(m -> m.field("clips.transcript").query(query))
+                            .explain(true)
+                            /*
+                            .suggest(sug -> sug.text(finalQuery)
+                                                .suggesters("suggestion",
+                                                              sugg -> sugg.term(t -> t.field("clips.words.word"))
+                                                )
                             )
-                            .sort(so -> so
-                                    .field(f -> f
-                                            .field("pubDate")
-                                            .order(SortOrder.Desc)))
-                            .size(30),
-                    Podcast.class);
-            return parseToClipCard(raw_results, phraseResp);
+                            */
+                    , Podcast.class
+            );
 
-        }catch(Exception e) {
-            e.printStackTrace();
-            return raw_results;
-        }
-    }
 
-    private List<ClipCard> parseToClipCard(List<ClipCard> raw_results, SearchResponse<Podcast> searchResponse){
-        if (searchResponse.hits().total() != null && searchResponse.hits().total().value() > 0) {
-            for (Hit<Podcast> hit : searchResponse.hits().hits()) {
-                if (hit.source() != null) {
-                    List<Clip> clips = hit.source().getClips();
-                    for (Clip clip : clips) {
-                        if (!Objects.equals(clip.getTranscript(), "")) {
-                            //calculate the duration
-                            int startLen = clip.getWords().get(0).getStartTime().length();
-                            float startTime = Float.parseFloat(clip.getWords().get(0).getStartTime().substring(0, startLen - 1));
-                            int endLen = clip.getWords().get(clip.getWords().size() - 1).getEndTime().length();
-                            float endTime = Float.parseFloat(clip.getWords().get(clip.getWords().size() - 1).getEndTime().substring(0, endLen - 1));
-                            float duration = endTime - startTime;
-                            ClipCard clipCard = new ClipCard(clip.getTranscript(), hit.source().getEpisode_name(), hit.source().getPubDate(), hit.source().getEpisode_uri(), hit.source().getPublisher(), duration, startTime, endTime);
-                            raw_results.add(clipCard);
+            boolean correction = false;
+            StringBuilder suggestion = new StringBuilder();
+            /*
+            for(Suggestion<Podcast> s : response.suggest().get("suggestion")) {
+                if(s.term().length() > 0) {
+                    correction = true;
+                    suggestion.append("<b>").append(s.term().options().text()).append("</b> ");
+                }else{
+                    suggestion.append(s.term().text()).append(" ");
+                }
+            }*/
+
+            HashMap<String, Float> idf = new HashMap<>();
+            List<Podcast> podcasts = new ArrayList<>();
+            for (Hit<Podcast> result : response.hits().hits()) {
+                result.explanation().details().forEach(detail -> {
+                    String term = detail.description().replaceAll("(^weight\\(clips.words.word:)|( .*$)","");
+                    if(!idf.containsKey(term)) {
+                        Float idf_t = detail.details().get(0).details().get(1).value();
+                        idf.put(term, idf_t);
+                    }
+                });
+
+                Podcast r = result.source();
+                List<Fragment> fragments = new ArrayList<>();
+                for(Clip clip : r.getClips()) {
+                    for(int i = 0; i < clip.getWords().size(); i++) {
+                        if(query.contains(clip.getWords().get(i).getWord().replaceAll("[^\\w\\s]", "").toLowerCase())) {
+                            Float score_t = 0.0f;
+                            StringBuilder fragment = new StringBuilder();
+                            int j = Math.max(i-5, 0);
+                            double begin = clip.getWords().get(j).getStartTimeAsDouble();
+                            String begin_s = clip.getWords().get(j).getStartTime();
+                            String end_s = "";
+                            while(j < clip.getWords().size()) {
+                                if(clip.getWords().get(j).getEndTimeAsDouble() - begin > seconds) {
+                                    break;
+                                }
+                                if(query.contains(clip.getWords().get(j).getWord().replaceAll("[^\\w\\s]", ""))) {
+                                    fragment.append("<b>").append(clip.getWords().get(j).getWord()).append("</b> ");
+                                    score_t += idf.getOrDefault(clip.getWords().get(j).getWord(), 0.0f);
+                                }else{
+                                    fragment.append(clip.getWords().get(j).getWord()).append(" ");
+                                }
+                                end_s = clip.getWords().get(j).getEndTime();
+                                j++;
+                            }
+                            if(fragment.length() > 0) {
+                                fragments.add(new Fragment("..."+fragment.toString()+"...",score_t,begin_s,end_s));
+                            }
                         }
                     }
                 }
+                Collections.sort(fragments);
+                r.setResultFragments(fragments);
+                podcasts.add(r);
             }
-        }
-        return raw_results;
-    }
-    private List<ClipCard> filterPhraseClip(String query, List<ClipCard> raw_results, float seconds) {
-        List<ClipCard> results = new ArrayList<>();
-        //only show the clips of transcript contain the query
-        for (ClipCard card : raw_results){
-            if (card.getTranscript().contains(query) && seconds > card.getDuration()){
-                card.plusTimeStamp();
-                results.add(card);
-            }
-        }
-        return results;
-    }
 
-    private List<ClipCard> filterIntersectClip(String query, List<ClipCard> raw_results, float seconds) {
-        List<ClipCard> results = new ArrayList<>();
-        String[] terms = query.split(" ");
-        //only show the clips of transcript contain the query
-        for (ClipCard card : raw_results){
-            for (String term : terms){
-                if (!card.getTranscript().contains(term)){
-                    break;
-                }
-                if (seconds > card.getDuration()){
-                    card.plusTimeStamp();
-                    results.add(card);
-                }
-            }
+            return new Result(podcasts, correction?suggestion.toString():"", response.took());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Result();
         }
-        return results;
     }
 }
