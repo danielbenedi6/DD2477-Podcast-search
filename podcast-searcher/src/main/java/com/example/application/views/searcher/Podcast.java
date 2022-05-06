@@ -19,6 +19,10 @@ public class Podcast {
     Date pubDate;
     String enclosure;
     String publisher;
+    String image;
+
+    List<Fragment> resultFragments;
+
     int id;
 
     public Podcast(){
@@ -29,10 +33,11 @@ public class Podcast {
         this.clips = new ArrayList<>();
         this.enclosure = "";
         this.publisher = "";
+        this.image = "";
         this.id = -1;
     }
 
-    public Podcast(String episode_name, String show_name, String transcript, List<Clip> clips, String episode_uri, Date pubDate, String enclosure, String publisher) {
+    public Podcast(String episode_name, String show_name, String transcript, List<Clip> clips, String episode_uri, Date pubDate, String enclosure, String publisher, String image) {
         this.episode_name = episode_name;
         this.clips = clips;
         this.show_name = show_name;
@@ -40,6 +45,7 @@ public class Podcast {
         this.pubDate = pubDate;
         this.enclosure = enclosure;
         this.publisher = publisher;
+        this.image = image;
         this.transcript = transcript;
     }
     public Podcast(Podcast podcast){
@@ -51,6 +57,7 @@ public class Podcast {
         this.enclosure =podcast.getEnclosure();
         this.publisher = podcast.getPublisher();
         this.transcript = podcast.getTranscript();
+        this.image = podcast.getImage();
     }
 
     public String getEpisode_name() {
@@ -108,8 +115,23 @@ public class Podcast {
     public void setTranscript(String transcript) {
         this.transcript = transcript;
     }
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
 
     public String getTranscript() {
         return transcript;
+    }
+
+    public List<Fragment> getResultFragments() {
+        return resultFragments;
+    }
+
+    public void setResultFragments(List<Fragment> resultFragments) {
+        this.resultFragments = resultFragments;
     }
 }

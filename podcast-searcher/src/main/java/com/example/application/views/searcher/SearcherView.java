@@ -1,21 +1,25 @@
 package com.example.application.views.searcher;
 
+import com.example.application.ElasticService;
 import com.example.application.views.MainLayout;
+import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
-import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
-import org.apache.commons.lang3.NotImplementedException;
-import java.util.ArrayList;
+
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 @PageTitle("Searcher")
@@ -23,22 +27,35 @@ import java.util.List;
 @RouteAlias(value = "", layout = MainLayout.class)
 public class SearcherView extends Div  {
 
-    Grid<ClipCard> grid = new Grid<>();
+    Grid<Podcast> grid = new Grid<>();
     private HorizontalLayout pageButtonsLayout;
     public static final int PAGE_SIZE = 2;
+    public static final int MAX_FRAGMENTS = 10;
+    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
     private int currPage = 0;
     private int maxPage;
     Button arrowLeftButton, arrowRightButton;
     Div pageNumberDiv;
-    public List<ClipCard> cardList;
+
+    Button correction;
+    Paragraph time;
+
+    public ElasticService.Result data;
+
+    private MainLayout parent;
+
+    public SearcherView(MainLayout parent) {
+        this();
+        this.parent = parent;
+    }
 
     public SearcherView() {
-        cardList = new ArrayList<>();
+        data = new ElasticService.Result();
         addClassName("searcher-view");
         setSizeFull();
         grid.setHeight("85%");
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
-        grid.addComponentColumn(this::createClipCard);
+        grid.addComponentColumn(this::createPodcast);
         grid.setVerticalScrollingEnabled(true);
 
         arrowLeftButton = new Button("Prev", new Icon(VaadinIcon.ARROW_LEFT));
@@ -58,22 +75,61 @@ public class SearcherView extends Div  {
         pageButtonsLayout.setPadding(true);
         pageButtonsLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
+        time = new Paragraph();
+        time.setVisible(false);
+        time.getStyle().set("width", "100%");
+        time.getStyle().set("font-size", "8px");
+        time.getStyle().set("font-color", "lightgray");
+
+        correction = new Button();
+        correction.setWidthFull();
+        correction.setText("");
+        correction.setVisible(false);
+        correction.getStyle().set("background-color", "transparent");
+        correction.getStyle().set("font-size", "16px");
+        correction.addClickListener(click -> {
+            parent.searchField.setValue(data.suggestion.replace("(<b>|</b>)", ""));
+            parent.searchButton.click();
+        });
+
+        add(correction);
+        add(time);
         add(grid);
         add(pageButtonsLayout);
     }
 
-    private HorizontalLayout createClipCard(ClipCard clipCard) {
-        HorizontalLayout text_playButton_layout = new HorizontalLayout();
+    private HorizontalLayout createPodcast(Podcast podcast) {
+        HorizontalLayout all = new HorizontalLayout();
+        VerticalLayout title_play_content = new VerticalLayout();
+        HorizontalLayout title_play = new HorizontalLayout();
 
-        TextArea podcastContent = new TextArea();
-        podcastContent.setWidthFull();
-        podcastContent.setLabel("[Episode name: " + clipCard.getEpisode_name() + "]---[Publisher: " + clipCard.getPublisher() + "]---[Episode date: " + clipCard.getPubDate() + "]");
-        podcastContent.setValueChangeMode(ValueChangeMode.EAGER);
-        podcastContent.setValue(clipCard.getTranscript());
-        podcastContent.setEnabled(false);
-        podcastContent.getStyle().set("font-size", "14px");
-        podcastContent.getStyle().set("font-weight", "bold");
-        podcastContent.getStyle().set("font-color", "white");
+        Image image = new Image(podcast.getImage(), podcast.getShow_name());
+
+        Html title = new Html("<div><h3 style='margin: 0px;'>" + podcast.getEpisode_name() + "</h3><br>" +
+                                "<h6 style='margin: 0px;'>" + podcast.getPublisher() + " - " + DATE_FORMAT.format(podcast.getPubDate()) + "</h6></div>");
+
+
+        StringBuilder contentSB = new StringBuilder();
+        for(int i = 0; i < Math.min(podcast.getResultFragments().size(), MAX_FRAGMENTS); i++) {
+            Fragment f = podcast.getResultFragments().get(podcast.getResultFragments().size()-i-1);
+            contentSB.append("(")
+                    .append(f.getBegin())
+                    .append(",")
+                    .append(f.getEnd())
+                    .append(") ")
+                    .append(f.getFragment())
+                    .append("<br>");
+        }
+
+        Html content = new Html("<div>" + contentSB + "</div>");
+        content.getElement().getStyle().set("font-size", "14px");
+        content.getElement().getStyle().set("font-color", "white");
+        content.getElement().getStyle().set("border-style", "solid");
+        content.getElement().getStyle().set("border-width", "1px");
+        content.getElement().getStyle().set("border-color", "silver");
+        content.getElement().getStyle().set("background-color", "rgb(35,51,72)");
+        content.getElement().getStyle().set("padding", "5px");
+        content.getElement().getStyle().set("width", "100%");
 
         Button playButton = new Button();
         Icon playIcon = new Icon(VaadinIcon.PLAY_CIRCLE);
@@ -81,35 +137,32 @@ public class SearcherView extends Div  {
         playButton.getStyle().set("color","#1DB954");
         playButton.setHeightFull();
         playButton.addClickListener(click -> {
-            playPodcast(clipCard.getEpisode_uri());
+            playPodcast(podcast.getEpisode_uri());
         });
 
+        title_play.add(title, playButton);
+        title_play_content.add(title_play, content);
+        all.add(image, title_play_content);
 
-        text_playButton_layout.add(podcastContent, playButton);
-        text_playButton_layout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
-        text_playButton_layout.setPadding(false);
-        text_playButton_layout.setWidthFull();
-
-        return text_playButton_layout;
+        return all;
     }
 
-    public ArrayList<Podcast> searchPodcasts(String query, int seconds){
-        throw new NotImplementedException("Implement searchPodcasts function (SearcherView class)");
-    }
-
-    public void insertPodcast(Podcast podcast){
-        List<Podcast> podcastList = new ArrayList<>();
-        podcastList.add(podcast);
-        grid.setItems(cardList);
-    }
-    public void splitAndShowResultsInPages(List<ClipCard> cardList){
-        this.cardList = cardList;
-        int n = cardList.size();
+    public void splitAndShowResultsInPages(ElasticService.Result data){
+        this.data = data;
+        int n = data.podcasts.size();
         int topPAGESIZEidx = Math.min(n, PAGE_SIZE);
         currPage = 0;
         maxPage = (int) Math.ceil((double) n/PAGE_SIZE);
 
-        List<ClipCard> topPAGESIZE = cardList.subList(0, topPAGESIZEidx);
+        time.setText(n + " podcasts found in "+ data.time + " milliseconds");
+        time.setVisible(true);
+
+        if(this.data.suggestion.length() > 0){
+            correction.setText("Did you mean: " + this.data.suggestion);
+            correction.setVisible(true);
+        }
+
+        List<Podcast> topPAGESIZE = data.podcasts.subList(0, topPAGESIZEidx);
         grid.setItems(topPAGESIZE);
         grid.recalculateColumnWidths();
         updateButtonsAndPageDiv();
@@ -129,15 +182,15 @@ public class SearcherView extends Div  {
     public void nextPage(){
         currPage++;
         int start_idx = currPage*PAGE_SIZE;
-        int end_idx = Math.min(cardList.size(), (start_idx + PAGE_SIZE));
-        grid.setItems(cardList.subList(start_idx, end_idx));
+        int end_idx = Math.min(data.podcasts.size(), (start_idx + PAGE_SIZE));
+        grid.setItems(data.podcasts.subList(start_idx, end_idx));
         updateButtonsAndPageDiv();
     }
 
     public void previousPage(){
         currPage--;
         int start_idx = currPage*PAGE_SIZE;
-        grid.setItems(cardList.subList(start_idx, start_idx+PAGE_SIZE));
+        grid.setItems(data.podcasts.subList(start_idx, start_idx+PAGE_SIZE));
         updateButtonsAndPageDiv();
     }
 

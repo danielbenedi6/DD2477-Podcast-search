@@ -3,49 +3,40 @@ package com.example.application.views.searcher;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Clip {
+    @JsonProperty("words")
+    private List<Word> words;
+
+
     @JsonProperty("transcript")
     private String transcript;
-    @JsonProperty("confidence")
-    private float confidence;
-    @JsonProperty("words")
-    private List<Words> words;
-
 
     public Clip(){
-        this.transcript = "";
-        this.confidence = 0.0F;
+        words = new ArrayList<>();
+        transcript = "";
     }
-    public Clip(String transcript, long confidence, List<Words> words){
+    public Clip(List<Word> words, String transcript) {
+        this.words = words;
         this.transcript = transcript;
-        this.confidence = confidence;
     }
 
-    public float getConfidence() {
-        return confidence;
+    public List<Word> getWords() {
+        return words;
     }
 
-    public void setConfidence(float confidence) {
-        this.confidence = confidence;
+    public void setWords(List<Word> words) {
+        this.words = words;
     }
-
     public String getTranscript() {
         return transcript;
     }
 
     public void setTranscript(String transcript) {
         this.transcript = transcript;
-    }
-
-    public List<Words> getWords() {
-        return words;
-    }
-
-    public void setWords(List<Words> words) {
-        this.words = words;
     }
 }

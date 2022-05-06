@@ -12,8 +12,8 @@ FILE=PATH+'metadata-summarization-testset.tsv'
 TRANSCRIPTS=PATH+'podcasts-transcripts-summarization-testset'
 RSS=PATH+'show-rss-summarization-testset'
 
-AUTH=("elastic",'2HDh8FRFBlcQ6oe4IY*G')
-FINGERPRINT='87e5440afcb16bf390e37a4c5057c307eb9642c80d1244b96f487289d16c6420'
+AUTH=("elastic",'4a8d55e799c357eb')
+FINGERPRINT='63fc9699288e16b67200a15ed474b8794b5ddab8'
 CA_CERT=''
 
 if AUTH[1] == "":
@@ -91,7 +91,6 @@ for file in listOfFiles:
                 "transcript" : text
             }
         )
-
 
 
 es.indices.refresh(index="spotify-podcasts-test")
