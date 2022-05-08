@@ -25,7 +25,7 @@ import org.elasticsearch.client.RestClient;
  */
 public class MainLayout extends AppLayout {
 
-    private SearcherView searcherView = new SearcherView(this);
+    private SearcherView searcherView;
     private final ElasticService service;
 
     public Header header;
@@ -38,6 +38,7 @@ public class MainLayout extends AppLayout {
     public Div secSuffix;
     public Div segmentPrefix;
     public Button searchButton;
+    public Button correction;
 
     /**
      * A simple navigation item component, based on ListItem element.
@@ -92,7 +93,13 @@ public class MainLayout extends AppLayout {
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setHeight("100%");
         searcherView = new SearcherView();
-        verticalLayout.add(searcherView);
+        correction = new Button();
+        correction.setVisible(false);
+        correction.setWidthFull();
+        correction.getStyle().set("background-color", "transparent");
+        correction.getStyle().set("font-size", "16px");
+
+        verticalLayout.add(correction, searcherView);
         verticalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         return verticalLayout;
     }
@@ -136,6 +143,7 @@ public class MainLayout extends AppLayout {
             String query = searchField.getValue();
             //searchField.clear();
             searchField.focus();
+            correction.setVisible(false);
             searchQuery(query, secondsField.getValue());
         });
         searchButton.addClickShortcut(Key.ENTER);
@@ -153,7 +161,18 @@ public class MainLayout extends AppLayout {
     }
 
     private void searchQuery(String query, int seconds){
-        searcherView.splitAndShowResultsInPages(service.search(query, seconds));
+        ElasticService.Result result = service.search(query, seconds);
+        if(result.suggestion.length() > 0){
+            System.out.println("Did you mean: " + result.suggestion);
+            correction.setText("Did you mean: " + result.suggestion);
+            correction.addClickListener(click -> {
+                searchField.setValue(result.suggestion);
+                searchButton.click();
+            });
+            correction.setVisible(true);
+            setContent(correction);
+        }
+        searcherView.splitAndShowResultsInPages(result);
         setContent(searcherView);
     }
 

@@ -14,7 +14,6 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
@@ -37,17 +36,9 @@ public class SearcherView extends Div  {
     Button arrowLeftButton, arrowRightButton;
     Div pageNumberDiv;
 
-    Button correction;
     Paragraph time;
 
     public ElasticService.Result data;
-
-    private MainLayout parent;
-
-    public SearcherView(MainLayout parent) {
-        this();
-        this.parent = parent;
-    }
 
     public SearcherView() {
         data = new ElasticService.Result();
@@ -81,18 +72,6 @@ public class SearcherView extends Div  {
         time.getStyle().set("font-size", "8px");
         time.getStyle().set("font-color", "lightgray");
 
-        correction = new Button();
-        correction.setWidthFull();
-        correction.setText("");
-        correction.setVisible(false);
-        correction.getStyle().set("background-color", "transparent");
-        correction.getStyle().set("font-size", "16px");
-        correction.addClickListener(click -> {
-            parent.searchField.setValue(data.suggestion.replace("(<b>|</b>)", ""));
-            parent.searchButton.click();
-        });
-
-        add(correction);
         add(time);
         add(grid);
         add(pageButtonsLayout);
@@ -156,11 +135,6 @@ public class SearcherView extends Div  {
 
         time.setText(n + " podcasts found in "+ data.time + " milliseconds");
         time.setVisible(true);
-
-        if(this.data.suggestion.length() > 0){
-            correction.setText("Did you mean: " + this.data.suggestion);
-            correction.setVisible(true);
-        }
 
         List<Podcast> topPAGESIZE = data.podcasts.subList(0, topPAGESIZEidx);
         grid.setItems(topPAGESIZE);
