@@ -31,6 +31,7 @@ public class MainLayout extends AppLayout {
     public Header header;
     public Div layoutAppName;
     public VerticalLayout verticalLayout;
+    public VerticalLayout searchLayout;
     public H1 appName;
     public HorizontalLayout layoutSearch;
     public TextField searchField;
@@ -90,8 +91,8 @@ public class MainLayout extends AppLayout {
     }
 
     private Component createResultsView(){
-        VerticalLayout verticalLayout = new VerticalLayout();
-        verticalLayout.setHeight("100%");
+        searchLayout = new VerticalLayout();
+        searchLayout.setHeight("100%");
         searcherView = new SearcherView();
         correction = new Button();
         correction.setVisible(false);
@@ -99,9 +100,9 @@ public class MainLayout extends AppLayout {
         correction.getStyle().set("background-color", "transparent");
         correction.getStyle().set("font-size", "16px");
 
-        verticalLayout.add(correction, searcherView);
-        verticalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        return verticalLayout;
+        searchLayout.add(correction, searcherView);
+        searchLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        return searchLayout;
     }
 
     private Component createHeaderContent() {
@@ -164,16 +165,22 @@ public class MainLayout extends AppLayout {
         ElasticService.Result result = service.search(query, seconds);
         if(result.suggestion.length() > 0){
             System.out.println("Did you mean: " + result.suggestion);
-            correction.setText("Did you mean: " + result.suggestion);
+            correction.getElement().setText("Did you mean: " + result.suggestion);
             correction.addClickListener(click -> {
                 searchField.setValue(result.suggestion);
                 searchButton.click();
             });
             correction.setVisible(true);
-            setContent(correction);
+            searchLayout.setVisible(true);
+            searcherView.setVisible(false);
+            setContent(searchLayout);
         }
-        searcherView.splitAndShowResultsInPages(result);
-        setContent(searcherView);
+        else {
+            searcherView.setVisible(true);
+            searcherView.splitAndShowResultsInPages(result);
+            setContent(searcherView);
+        }
+
     }
 
 }

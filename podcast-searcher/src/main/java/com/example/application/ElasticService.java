@@ -50,7 +50,7 @@ public class ElasticService {
     private final static String ELASTIC_URL = "localhost";
     private final static int ELASTIC_PORT = 9200;
     private final static String ELASTIC_USERNAME = "elastic";
-    private final static String ELASTIC_PASSWORD = "4a8d55e799c357eb";
+    private final static String ELASTIC_PASSWORD = "65d32b4b8d7e048d";
     private final static Path caCertificatePath = Paths.get("../es01.crt");
 
     public ElasticService() throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
