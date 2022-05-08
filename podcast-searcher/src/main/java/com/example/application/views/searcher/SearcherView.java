@@ -86,8 +86,10 @@ public class SearcherView extends Div  {
 
         Image image = new Image(podcast.getImage(), podcast.getShow_name());
 
+        String pubDate = podcast.getPubDate()==null ? "" : " - " + DATE_FORMAT.format(podcast.getPubDate());
+
         Html title = new Html("<div><h3 style='margin: 0px;'>" + podcast.getEpisode_name() + "</h3><br>" +
-                                "<h6 style='margin: 0px;'>" + podcast.getPublisher() + " - " + DATE_FORMAT.format(podcast.getPubDate()) + "</h6></div>");
+                                "<h6 style='margin: 0px;'>" + podcast.getPublisher() + pubDate + "</h6></div>");
 
 
         StringBuilder contentSB = new StringBuilder();
