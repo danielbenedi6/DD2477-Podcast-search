@@ -43,8 +43,8 @@ public class SearcherView extends Div  {
     public SearcherView() {
         data = new ElasticService.Result();
         addClassName("searcher-view");
-        setSizeFull();
-        grid.setHeight("85%");
+
+        grid.setHeight("80%");
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
         grid.addComponentColumn(this::createPodcast);
         grid.setVerticalScrollingEnabled(true);
@@ -68,10 +68,11 @@ public class SearcherView extends Div  {
 
         time = new Paragraph();
         time.setVisible(false);
+        time.setHeight("2%");
         time.getStyle().set("width", "100%");
         time.getStyle().set("font-size", "8px");
         time.getStyle().set("font-color", "lightgray");
-
+        setHeight("95%");
         add(time);
         add(grid);
         add(pageButtonsLayout);
@@ -79,13 +80,16 @@ public class SearcherView extends Div  {
 
     private HorizontalLayout createPodcast(Podcast podcast) {
         HorizontalLayout all = new HorizontalLayout();
-        VerticalLayout title_play_content = new VerticalLayout();
-        HorizontalLayout title_play = new HorizontalLayout();
+        VerticalLayout image_and_play = new VerticalLayout();
+        VerticalLayout title_content = new VerticalLayout();
+//        HorizontalLayout title_play = new HorizontalLayout();
 
         Image image = new Image(podcast.getImage(), podcast.getShow_name());
 
+        String pubDate = podcast.getPubDate()==null ? "" : " - " + DATE_FORMAT.format(podcast.getPubDate());
+
         Html title = new Html("<div><h3 style='margin: 0px;'>" + podcast.getEpisode_name() + "</h3><br>" +
-                                "<h6 style='margin: 0px;'>" + podcast.getPublisher() + " - " + DATE_FORMAT.format(podcast.getPubDate()) + "</h6></div>");
+                                "<h6 style='margin: 0px;'>" + podcast.getPublisher() + pubDate + "</h6></div>");
 
 
         StringBuilder contentSB = new StringBuilder();
@@ -106,6 +110,7 @@ public class SearcherView extends Div  {
         content.getElement().getStyle().set("border-style", "solid");
         content.getElement().getStyle().set("border-width", "1px");
         content.getElement().getStyle().set("border-color", "silver");
+        content.getElement().getStyle().set("border-radius", "5px");
         content.getElement().getStyle().set("background-color", "rgb(35,51,72)");
         content.getElement().getStyle().set("padding", "5px");
         content.getElement().getStyle().set("width", "100%");
@@ -114,14 +119,16 @@ public class SearcherView extends Div  {
         Icon playIcon = new Icon(VaadinIcon.PLAY_CIRCLE);
         playButton.setIcon(playIcon);
         playButton.getStyle().set("color","#1DB954");
-        playButton.setHeightFull();
+//        playButton.setHeightFull();
         playButton.addClickListener(click -> {
             playPodcast(podcast.getEpisode_uri());
         });
 
-        title_play.add(title, playButton);
-        title_play_content.add(title_play, content);
-        all.add(image, title_play_content);
+        image_and_play.add(image, playButton);
+        image_and_play.setWidth("3%");
+        title_content.add(title, content);
+        title_content.setWidth("95%");
+        all.add(image_and_play, title_content);
 
         return all;
     }
