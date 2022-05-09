@@ -22,7 +22,7 @@ For indexing, python3 is needed:
 ```
 python3 indexing.py
 ```
-It will ask for username and password in Elasticsearch as well as the fingerprint or the certificate of the SA. The fingerprint was showed in the previous step.
+It will ask for username and password in Elasticsearch as well as the fingerprint or the certificate of the CA. The fingerprint was showed in the previous step.
 
 ## Running the search engine
 
